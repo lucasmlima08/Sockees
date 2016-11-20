@@ -1,7 +1,7 @@
 package com.myllenno.sockees.servercontrol;
 
+import com.myllenno.sockees.management.User;
 import com.myllenno.sockees.report.HandlerDialog;
-import com.myllenno.sockees.usercontrol.UserManagement;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -31,14 +31,14 @@ public class ReceiveUsers {
      *
      * @return
      */
-    public UserManagement receive(ServerSocket serverSocket) {
+    public User receive(ServerSocket serverSocket) {
         try {
         	// Primeiro passo: Inicia a espera por um novo cliente
             Socket client = serverSocket.accept();
             // Segundo passo: Autentica o cliente.
-            UserManagement userManagement = new UserManagement(client);
+            User user = new User(client);
             handlerDialog.publishInfo(handlerDialog.USER_RECEIVED);
-            return userManagement;
+            return user;
         } catch (Exception e){
         	handlerDialog.publishSevere(e.toString());
             e.printStackTrace();

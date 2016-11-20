@@ -1,7 +1,7 @@
 package com.myllenno.sockees.servercontrol;
 
+import com.myllenno.sockees.management.User;
 import com.myllenno.sockees.report.HandlerDialog;
-import com.myllenno.sockees.usercontrol.UserManagement;
 
 import java.util.ArrayList;
 import java.util.logging.Handler;
@@ -54,7 +54,7 @@ public class ReadRequests {
      * @param objectType
      * @return
      */
-    public Object read(UserManagement user, Object objectType) {
+    public Object read(User user, Object objectType) {
     	// Primeiro passo: Chama o recebimento de requisições do cliente.
     	user.receiveRequests(objectType);
     	// Verifica se a lista possui requisições.
@@ -72,7 +72,7 @@ public class ReadRequests {
      * Recebe as requisições de todos os clientes conectados.
      * Pode ser usado em um thread.
      */
-    public void readAll(ArrayList<UserManagement> listUsers, Object objectType) {
+    public void readAll(ArrayList<User> listUsers, Object objectType) {
     	// Primeiro passo: Percorre a lista de clientes.
         for (int i = 0; i < listUsers.size(); i++) {
         	// Segundo passo: Verifica se o usuário está disponível.

@@ -1,8 +1,13 @@
 package com.myllenno.sockees.requests;
 
-import com.myllenno.sockees.usercontrol.UserManagement;
+import com.myllenno.sockees.management.User;
 
 public class RequestSimple {
+	
+	/**
+     * Cliente que enviou a requisição.
+     */
+    private User user;
 
     /**
      * Clientes que receberão a requisição.
@@ -10,13 +15,23 @@ public class RequestSimple {
     private Object object;
 
     /**
-     * Cliente que enviou a requisição.
+     * Método construtor.
+     * 
+     * @param user
+     * @param object
      */
-    private UserManagement client;
-
-    public RequestSimple(UserManagement client, Object object){
-    	this.client = client;
+    public RequestSimple(User user, Object object){
+    	this.user = user;
         this.object = object;
+    }
+    
+    /**
+     * Retorna o objeto que foi recebido.
+     *
+     * @return
+     */
+    public User getUser(){
+        return user;
     }
 
     /**
@@ -26,14 +41,5 @@ public class RequestSimple {
      */
     public Object getObject(){
         return object;
-    }
-
-    /**
-     * Retorna o objeto que foi recebido.
-     *
-     * @return
-     */
-    public UserManagement getClient(){
-        return client;
     }
 }

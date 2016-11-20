@@ -1,7 +1,7 @@
 package com.myllenno.sockees.servercontrol;
 
+import com.myllenno.sockees.management.User;
 import com.myllenno.sockees.report.HandlerDialog;
-import com.myllenno.sockees.usercontrol.UserManagement;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -27,16 +27,16 @@ public class AuthenticateUsers {
     /**
      * Realiza a autenticação do cliente no servidor.
      * 
-     * @param userManagement
+     * @param user
      * @param timeToAuthentication
      * @return
      */
-    public UserManagement authentication(UserManagement userManagement, int timeToAuthentication){
+    public User authentication(User user, int timeToAuthentication){
     	boolean available = false;
 		long startTime = System.currentTimeMillis();
 		try {
-			PrintStream printStream = new PrintStream(userManagement.getOutputStream());
-			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(userManagement.getInputStream(), "UTF-8"));
+			PrintStream printStream = new PrintStream(user.getOutputStream());
+			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(user.getInputStream(), "UTF-8"));
 			// Faz a leitura do identificador do cliente.
 			while (!available) {
 				String read = bufferedReader.readLine();
@@ -53,7 +53,7 @@ public class AuthenticateUsers {
 					printStream.println("accepted");
 					available = true;
 					handlerDialog.publishInfo(handlerDialog.USER_AUTHENTICATED);
-					return userManagement;
+					return user;
 				}
 				// verifica se esgotou o tempo de verificação da autenticação.
 				if ((System.currentTimeMillis() - startTime) >= timeToAuthentication){

@@ -1,10 +1,15 @@
 package com.myllenno.sockees.requests;
 
+import com.myllenno.sockees.management.User;
+
 import java.util.ArrayList;
 
-import com.myllenno.sockees.usercontrol.UserManagement;
-
 public class RequestGroup {
+	
+	/**
+     * Clientes que receberão a requisição.
+     */
+    private ArrayList<User> listUsers;
 
     /**
      * Objeto que foi recebido.
@@ -12,13 +17,23 @@ public class RequestGroup {
     private Object object;
 
     /**
-     * Clientes que receberão a requisição.
+     * Método construtor.
+     * 
+     * @param listClients
+     * @param object
      */
-    private ArrayList<UserManagement> listClients;
-
-    public RequestGroup(Object object, ArrayList<UserManagement> listClients){
+    public RequestGroup(ArrayList<User> listUsers, Object object){
         this.object = object;
-        this.listClients = listClients;
+        this.listUsers = listUsers;
+    }
+    
+    /**
+     * Retorna a lista de clientes que receberão a requisição.
+     *
+     * @return
+     */
+    public ArrayList<User> getListUsers(){
+        return listUsers;
     }
 
     /**
@@ -28,14 +43,5 @@ public class RequestGroup {
      */
     public Object getObject(){
         return object;
-    }
-
-    /**
-     * Retorna a lista de clientes que receberão a requisição.
-     *
-     * @return
-     */
-    public ArrayList<UserManagement> getListClients(){
-        return listClients;
     }
 }

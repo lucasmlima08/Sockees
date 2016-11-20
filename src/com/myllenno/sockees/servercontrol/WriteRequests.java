@@ -1,12 +1,12 @@
 package com.myllenno.sockees.servercontrol;
 
-import java.util.ArrayList;
-import java.util.logging.Handler;
-
+import com.myllenno.sockees.management.User;
 import com.myllenno.sockees.report.HandlerDialog;
 import com.myllenno.sockees.requests.RequestGroup;
 import com.myllenno.sockees.requests.RequestSimple;
-import com.myllenno.sockees.usercontrol.UserManagement;
+
+import java.util.ArrayList;
+import java.util.logging.Handler;
 
 public class WriteRequests {
 	
@@ -62,9 +62,9 @@ public class WriteRequests {
         if (request instanceof RequestSimple) {
             RequestSimple requestSimple = (RequestSimple) request;
             // Primeiro passo: Verifica se o cliente está disponível.
-            if (requestSimple.getClient().isAvailable()) {
+            if (requestSimple.getUser().isAvailable()) {
                 // Segundo passo: Envia a requisição.
-                requestSimple.getClient().sendRequest(requestSimple.getObject());
+                requestSimple.getUser().sendRequest(requestSimple.getObject());
                 status = true;
             // Caso o cliente não esteja disponível.
             } else {
@@ -78,16 +78,16 @@ public class WriteRequests {
 
             RequestGroup requestGroup = (RequestGroup) request;
             // Primeiro passo: Percorre a lista de clientes do grupo.
-            for (int i = 0; i < requestGroup.getListClients().size(); i++) {
+            for (int i = 0; i < requestGroup.getListUsers().size(); i++) {
                 // Segundo passo: Verifica se o cliente está disponível.
-                if (requestGroup.getListClients().get(i).isAvailable()) {
+                if (requestGroup.getListUsers().get(i).isAvailable()) {
                     // Terceiro passo: Envia a requisição.
-                    requestGroup.getListClients().get(i).sendRequest(requestGroup.getObject());
+                    requestGroup.getListUsers().get(i).sendRequest(requestGroup.getObject());
                     status = true;
                 // Caso o cliente não esteja disponível.
                 } else {
                     // Guarda a requisição não enviada.
-                    RequestSimple requestSimple = new RequestSimple(requestGroup.getListClients().get(i), requestGroup.getObject());
+                    RequestSimple requestSimple = new RequestSimple(requestGroup.getListUsers().get(i), requestGroup.getObject());
                     listRequestsNotSend.add(requestSimple);
                     handlerDialog.publishInfo(handlerDialog.DATA_NOT_SEND);
                 }
@@ -126,7 +126,7 @@ public class WriteRequests {
      * 
      * @param request
      */
-    public void writeDataAllUsers(ArrayList<UserManagement> listUsers, Object object){
+    public void writeDataAllUsers(ArrayList<User> listUsers, Object object){
     	// Primeiro passo: Percorre a lista de gerenciamento de clientes.
     	for (int i=0 ; i < listUsers.size(); i++){
     		// Segundo passo: Envia a requisição para cada cliente.

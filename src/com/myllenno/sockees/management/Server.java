@@ -1,11 +1,18 @@
-package com.myllenno.sockees.servercontrol;
+package com.myllenno.sockees.management;
 
-import com.myllenno.sockees.usercontrol.UserManagement;
+import com.myllenno.sockees.servercontrol.ConnectionServer;
+import com.myllenno.sockees.servercontrol.AuthenticateUsers;
+import com.myllenno.sockees.servercontrol.ReceiveUsers;
+import com.myllenno.sockees.servercontrol.ControlUsers;
+import com.myllenno.sockees.servercontrol.WriteRequests;
+import com.myllenno.sockees.servercontrol.ReadRequests;
+
+import com.myllenno.sockees.management.User;
 
 import java.net.ServerSocket;
 import java.util.logging.Handler;
 
-public class ServerManagement {
+public class Server {
 	
 	private ConnectionServer connectionServer;
 	private AuthenticateUsers authenticateUsers;
@@ -25,7 +32,7 @@ public class ServerManagement {
      * @param port
      * @param handler
      */
-    public ServerManagement(Handler handler){
+    public Server(Handler handler){
         // Responsável pelo controle da conexão do servidor.
         connectionServer = new ConnectionServer(handler);
         // Responsável pelo recebimento dos usuários.
@@ -76,20 +83,20 @@ public class ServerManagement {
      *
      * @return
      */
-    public UserManagement receiveUsers() {
-    	UserManagement userManagement = receiveUsers.receive(connectionServer.getServer());
-    	return userManagement;
+    public User receiveUsers() {
+    	User user = receiveUsers.receive(connectionServer.getServer());
+    	return user;
     }
     
     /**
      * Realiza a autenticação do cliente no servidor.
      * 
-     * @param userManagement
+     * @param user
      * @param timeToAuthentication
      * @return
      */
-    public UserManagement authenticateUser(UserManagement userManagement, int timeToAuthentication){
-    	UserManagement userAuthenticated = authenticateUsers.authentication(userManagement, timeToAuthentication);
+    public User authenticateUser(User user, int timeToAuthentication){
+    	User userAuthenticated = authenticateUsers.authentication(user, timeToAuthentication);
     	return userAuthenticated;
 	}
     
@@ -101,7 +108,7 @@ public class ServerManagement {
      * @param objectType
      * @return
      */
-    public Object receiveRequest(UserManagement user, Object objectType) {
+    public Object receiveRequest(User user, Object objectType) {
         Object object = readRequests.read(user, objectType);
         return object;
     }

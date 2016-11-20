@@ -1,4 +1,9 @@
-package com.myllenno.sockees.usercontrol;
+package com.myllenno.sockees.management;
+
+import com.myllenno.sockees.usercontrol.ConnectionUser;
+import com.myllenno.sockees.usercontrol.Authenticate;
+import com.myllenno.sockees.usercontrol.ReceiveRequest;
+import com.myllenno.sockees.usercontrol.SendRequest;
 
 import com.myllenno.sockees.requests.RequestSimple;
 
@@ -8,7 +13,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.logging.Handler;
 
-public class UserManagement {
+public class User {
 	
 	private ConnectionUser connectionUser;
 	private Authenticate authenticate;
@@ -30,7 +35,7 @@ public class UserManagement {
      * 
      * @param user
      */
-    public UserManagement(Socket user){
+    public User(Socket user){
         this.user = user;
         start(null);
     }
@@ -41,7 +46,7 @@ public class UserManagement {
      * @param client
      * @param idUser
      */
-    public UserManagement(Socket user, int idUser){
+    public User(Socket user, int idUser){
     	this.user = user;
     	this.idUser = idUser;
         start(null);
@@ -53,7 +58,7 @@ public class UserManagement {
      * @param idUser
      * @param handler
      */
-    public UserManagement(int idUser, Handler handler){
+    public User(int idUser, Handler handler){
     	this.idUser = idUser;
     	start(handler);
     }

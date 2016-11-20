@@ -1,7 +1,7 @@
 package com.myllenno.sockees.servercontrol;
 
+import com.myllenno.sockees.management.User;
 import com.myllenno.sockees.report.HandlerDialog;
-import com.myllenno.sockees.usercontrol.UserManagement;
 
 import java.util.ArrayList;
 import java.util.logging.Handler;
@@ -16,7 +16,7 @@ public class ControlUsers {
     /**
      * Lista de usuários conectados.
      */
-    private ArrayList<UserManagement> listUsers;
+    private ArrayList<User> listUsers;
 
     /**
      * Método construtor.
@@ -33,17 +33,17 @@ public class ControlUsers {
      *
      * @return
      */
-    public ArrayList<UserManagement> getAllUsers(){
+    public ArrayList<User> getAllUsers(){
         return listUsers;
     }
     
     /**
      * Responsável por adicionar um novo usuário a lista de usuários.
      * 
-     * @param userManagement
+     * @param user
      */
-    public void addUser(UserManagement userManagement){
-    	listUsers.add(userManagement);
+    public void addUser(User user){
+    	listUsers.add(user);
     }
     
     /**
