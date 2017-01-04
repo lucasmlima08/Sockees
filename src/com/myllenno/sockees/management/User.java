@@ -212,7 +212,6 @@ public class User {
     
     /**
      * Remove todas as requisições.
-     *
      */
     public void clearAll(){
     	receiveRequest.clearAllRequestsReceived();

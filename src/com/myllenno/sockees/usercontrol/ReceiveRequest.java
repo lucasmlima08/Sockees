@@ -41,8 +41,6 @@ public class ReceiveRequest {
 
     /**
      * Remove todas as requisições recebidas da lista.
-     *
-     * @return
      */
     public void clearAllRequestsReceived(){
     	listRequestsReceived.clear();
@@ -56,8 +54,8 @@ public class ReceiveRequest {
      *
      * Pode ser utilizado em um Thread ou um método de loop enquanto estiver conectado.
      *
+     * @param inputStream
      * @param objectType
-     * @return
      */
     public void receive(InputStream inputStream, Object objectType) {
         try {

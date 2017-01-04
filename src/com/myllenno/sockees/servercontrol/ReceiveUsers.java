@@ -29,6 +29,7 @@ public class ReceiveUsers {
      * Pode ser usado em um thread para permitir que o servidor possa receba
      * um ou mais de um clientes para controlar a sua conexão.
      *
+     * @param serverSocket
      * @return
      */
     public User receive(ServerSocket serverSocket) {

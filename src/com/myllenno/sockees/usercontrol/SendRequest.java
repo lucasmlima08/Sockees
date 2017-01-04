@@ -46,8 +46,6 @@ public class SendRequest {
 
     /**
      * Remove todas as requisições não enviadas da lista.
-     *
-     * @return
      */
     public void clearAllRequestNotSend(){
     	listRequestsNotSend.clear();
@@ -67,7 +65,8 @@ public class SendRequest {
      * Codifica para JSON e em seguida converte para bytes.
      * Escreve os bytes no socket do cliente.
      *
-     * @param object
+     * @param outputStream
+     * @param request
      */
     public boolean send(OutputStream outputStream, Object request) {
     	boolean status = false;
@@ -91,6 +90,8 @@ public class SendRequest {
     /**
      * Envia todas as requisições da lista de requisições.
      * Pode ser usado em um thread.
+     * 
+     * @param outputStream
      */
     public void sendAll(OutputStream outputStream) {
         // Primeiro passo: Percorre a lista de requisições enquanto houver requisição.

@@ -42,15 +42,13 @@ public class WriteRequests {
     
     /**
      * Remove todas as requisições não enviadas da lista.
-     *
-     * @return
      */
     public void clearAllRequestsNotSend() {
         listRequestsNotSend.clear();
     }
 	
 	/**
-     * Envia apenas uma requisição para uma lista de clientes.
+     * Envia apenas uma requisição para uma lista de usuários.
      * Pode ser usado em um thread.
      *
      * @param request
@@ -75,7 +73,6 @@ public class WriteRequests {
 
         // Verifica se é uma requisição em grupo.
         } else if (request instanceof RequestGroup) {
-
             RequestGroup requestGroup = (RequestGroup) request;
             // Primeiro passo: Percorre a lista de clientes do grupo.
             for (int i = 0; i < requestGroup.getListUsers().size(); i++) {
@@ -106,31 +103,25 @@ public class WriteRequests {
      * @param listRequests
      */
     public void writeAll(ArrayList<Object> listRequests) {
-        // Primeiro passo: Percorre a lista de requisições enquanto houver requisição.
-        while (!listRequests.isEmpty()) {
-            try {
-                // Segundo passo: Envia para o método de envio da requisição.
-                write(listRequests.get(0));
-                // Terceiro passo: Remove da lista a requisição enviada.
-                listRequests.remove(0);
-            } catch (Exception e) {
-            	handlerDialog.publishSevere(e.toString());
-                e.printStackTrace();
-            }
-        }
+        // Primeiro passo: Percorre a lista de requisições.
+    	for (Object request: listRequests){
+    		// Segundo passo: Envia a requisição.
+    		write(request);
+    	}
         handlerDialog.publishInfo(handlerDialog.REQUESTS_SENT_ALL);
     }
     
     /**
      * Envia um objeto para todos os clientes conectados.
      * 
-     * @param request
+     * @param listUsers
+     * @param object
      */
     public void writeDataAllUsers(ArrayList<User> listUsers, Object object){
-    	// Primeiro passo: Percorre a lista de gerenciamento de clientes.
-    	for (int i=0 ; i < listUsers.size(); i++){
-    		// Segundo passo: Envia a requisição para cada cliente.
-    		listUsers.get(i).sendRequest(object);
+    	// Primeiro passo: Percorre a lista de usuários.
+    	for (User user: listUsers){
+    		// Segundo passo: Envia a requisição.
+    		user.sendRequest(object);
     	}
     }
 }

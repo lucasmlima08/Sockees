@@ -74,7 +74,16 @@ public class Server {
         boolean status = connectionServer.isAvailable();
         return status;
     }
-        
+    
+    /**
+     * Responsável por adicionar um novo usuário a lista de usuários.
+     * 
+     * @param user
+     */
+    public void addUser(User user){
+    	controlUsers.addUser(user);
+    }
+    
     /**
      * Recebe novos clientes que venham a se conectar.
      *
@@ -119,7 +128,7 @@ public class Server {
      * 
      * @param objectType
      */
-    public void readRequests(Object objectType) {
+    public void readAllRequests(Object objectType) {
     	readRequests.readAll(controlUsers.getAllUsers(), objectType);
     }
     

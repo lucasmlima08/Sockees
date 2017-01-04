@@ -74,13 +74,13 @@ public class ReadRequests {
      */
     public void readAll(ArrayList<User> listUsers, Object objectType) {
     	// Primeiro passo: Percorre a lista de clientes.
-        for (int i = 0; i < listUsers.size(); i++) {
+    	for (User user: listUsers){
         	// Segundo passo: Verifica se o usuário está disponível.
-        	if (listUsers.get(i).isAvailable()){
+        	if (user.isAvailable()){
         		// Terceiro passo: Chama o recebimento de requisições do cliente.
-        		listUsers.get(i).receiveRequests(objectType);
+        		user.receiveRequests(objectType);
         		// Quarto passo: Adiciona todas as requisições a lista de requisições.
-        		listRequests.addAll(listUsers.get(i).getAllRequestsReceived());
+        		listRequests.addAll(user.getAllRequestsReceived());
             }
         }
         handlerDialog.publishInfo(handlerDialog.REQUESTS_RECEIVED_ALL);
