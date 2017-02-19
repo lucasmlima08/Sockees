@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) Lucas Myllenno S M Lima. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.myllenno.sockees.servercontrol;
 
 import com.myllenno.sockees.management.User;
@@ -6,83 +22,56 @@ import com.myllenno.sockees.report.HandlerDialog;
 import java.util.ArrayList;
 import java.util.logging.Handler;
 
-public class ReadRequests {
+public class ReadRequests implements Runnable {
 
-    /**
-     * Classe de comunicação do evento ocorrido.
-     */
-    private HandlerDialog handlerDialog;
-    
-    /**
-     * Lista de requisições para envio.
-     */
-    private ArrayList<Object> listRequests;
+	private boolean status;
+	private HandlerDialog handlerDialog;
+	private ControlUsers controlUsers;
+	private ArrayList<Object> listRequests;
 
-    /**
-     * Método construtor.
-     * 
-     * @param handler
-     */
-    public ReadRequests(Handler handler){
-        handlerDialog = new HandlerDialog(handler);
-    }
+	public ReadRequests(Handler handler, ControlUsers controlUsers) {
+		status = false;
+		handlerDialog = new HandlerDialog(handler);
+		this.controlUsers = controlUsers;
+		listRequests = new ArrayList<Object>();
+	}
+	
+	public void setStatus(boolean status) {
+		this.status = status;
+	}
+	
+	public boolean getStatus() {
+		return status;
+	}
 
-    /**
-     * Retorna a lista de todas as requisições que serão enviadas.
-     * Limpa a lista de requisições que serão enviadas.
-     *
-     * @return
-     */
-    public ArrayList<Object> getAllRequests() {
-        return listRequests;
-    }
+	public Object getFirstRequestRead() {			// Retorna a primeira requisição da lista.
+		if (!listRequests.isEmpty()) {
+			Object request = listRequests.get(0);
+			listRequests.remove(0);
+			return request;
+		}
+		return null;
+	}
 
-    /**
-     * Remove todas as requisições de envio da lista.
-     *
-     * @return
-     */
-    public void clearAllRequests() {
-    	listRequests.clear();
-    }
-    
-    /**
-     * Recebe uma requisição de um cliente.
-     * Pode se usado em um thread.
-     *
-     * @param user
-     * @param objectType
-     * @return
-     */
-    public Object read(User user, Object objectType) {
-    	// Primeiro passo: Chama o recebimento de requisições do cliente.
-    	user.receiveRequests(objectType);
-    	// Verifica se a lista possui requisições.
-    	if (user.getAllRequestsReceived().size() > 0){
-    		// Segundo passo: Pega a primeira requisição enviada.
-    		Object request = user.getAllRequestsReceived().get(0);
-    		// Terceiro passo: Remove a requisição recebida.
-    		// ------- PROGRAMAR...
-    		return request;
-    	}
-        return null;
-    }
-    
-    /**
-     * Recebe as requisições de todos os clientes conectados.
-     * Pode ser usado em um thread.
-     */
-    public void readAll(ArrayList<User> listUsers, Object objectType) {
-    	// Primeiro passo: Percorre a lista de clientes.
-    	for (User user: listUsers){
-        	// Segundo passo: Verifica se o usuário está disponível.
-        	if (user.isAvailable()){
-        		// Terceiro passo: Chama o recebimento de requisições do cliente.
-        		user.receiveRequests(objectType);
-        		// Quarto passo: Adiciona todas as requisições a lista de requisições.
-        		listRequests.addAll(user.getAllRequestsReceived());
-            }
-        }
-        handlerDialog.publishInfo(handlerDialog.REQUESTS_RECEIVED_ALL);
-    }
+	public void clearRequests() {
+		listRequests.clear();
+	}
+
+	/**
+	 * Realiza a leitura das requisições dos usuários e inclui na lista.
+	 */
+	@Override
+	public void run() {
+		while (status) {
+			for (User user : controlUsers.getAllUsers()) {
+				if (user.isAvailable()) {
+					Object request = user.getFirstRequestReceived();
+					if (request != null) {
+						listRequests.add(request);
+					}
+				}
+			}
+		}
+		handlerDialog.publishInfo(handlerDialog.REQUESTS_RECEIVED_ALL);
+	}
 }

@@ -1,104 +1,109 @@
+/*
+ * Copyright (C) Lucas Myllenno S M Lima. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.myllenno.sockees.usercontrol;
 
 import com.google.gson.Gson;
 import com.myllenno.sockees.report.HandlerDialog;
 
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.logging.Handler;
 
-public class SendRequest {
+public class SendRequest implements Runnable {
 
-    /**
-     * Classe de comunicação do evento ocorrido.
-     */
+	private boolean status;
     private HandlerDialog handlerDialog;
-    
-    /**
-     * Lista de requisições para envio.
-     */
-    private ArrayList<Object> listRequestsSend;
+    private ConnectionUser connectionUser;
+    private ArrayList<Object> listRequestsToSend;
 
-    /**
-     * Lista de requisições que não puderão ser enviadas.
-     */
-    private ArrayList<Object> listRequestsNotSend;
-    
-    /**
-     * Método construtor.
-     * 
-     * @param handler
-     */
-    public SendRequest(Handler handler){
-        listRequestsSend = new ArrayList<>();
-        listRequestsNotSend = new ArrayList<>();
+    public SendRequest(Handler handler, ConnectionUser connectionUser){
+    	status = false;
         handlerDialog = new HandlerDialog(handler);
+        this.connectionUser = connectionUser;
+        listRequestsToSend = new ArrayList<>();
     }
-
-    /**
-     * Retorna a lista com todas as requisições que não puderam ser enviadas.
+    
+    public void addRequestToSend(Object request) {
+    	listRequestsToSend.add(request);
+    }
+    
+    public void setStatus(boolean status) {
+		this.status = status;
+	}
+	
+	public boolean getStatus() {
+		return status;
+	}
+    
+	public void clearAllRequestsToSend() {
+		listRequestsToSend.clear();
+	}
+	
+	public void sendRequest(Object request) throws Exception { 		// Envia a requisição para o servidor em formato JSON.
+		String json = objectToJson(request);
+		byte[] bytes = json.getBytes();
+        connectionUser.getOutputStream().write(bytes);
+	}
+    
+    public void sendRequest(String json) throws Exception { 		// Envia a requisição para o servidor em formato JSON.
+    	byte[] bytes = json.getBytes();
+        connectionUser.getOutputStream().write(bytes);
+    }
+    
+    /*
+     * Copyright (C) 2008 Google Inc.
      *
-     * @return
-     */
-    public ArrayList<Object> getAllRequestsNotSend(){
-    	return listRequestsNotSend;
-    }
-
-    /**
-     * Remove todas as requisições não enviadas da lista.
-     */
-    public void clearAllRequestNotSend(){
-    	listRequestsNotSend.clear();
-    }
-    
-    /**
-     * Adiciona uma requisição para envio ao servidor.
-     * 
-     * @param request
-     */
-    public void addRequestSend(Object request){
-    	listRequestsSend.add(request);
-    }
-    
-    /**
-     * Recebe um objeto para envio ao cliente.
-     * Codifica para JSON e em seguida converte para bytes.
-     * Escreve os bytes no socket do cliente.
+     * Licensed under the Apache License, Version 2.0 (the "License");
+     * you may not use this file except in compliance with the License.
+     * You may obtain a copy of the License at
      *
-     * @param outputStream
-     * @param request
-     */
-    public boolean send(OutputStream outputStream, Object request) {
-    	boolean status = false;
-        try {
-        	// Primeiro passo: Conversão do objeto para string JSON.
-            Gson gson = new Gson();
-            String json = gson.toJson(request);
-            // Segundo passo: Conversão da string JSON para para array de bytes.
-            byte[] bytes = json.getBytes();
-            // Terceiro passo: Escrever o array de bytes no socket do cliente.
-            outputStream.write(bytes);
-            status = true;
-            handlerDialog.publishInfo(handlerDialog.DATA_SENT);
-        } catch (Exception e){
-        	handlerDialog.publishSevere(e.toString());
-            e.printStackTrace();
-        }
-        return status;
-    }
-    
-    /**
-     * Envia todas as requisições da lista de requisições.
-     * Pode ser usado em um thread.
+     * http://www.apache.org/licenses/LICENSE-2.0
+     *
+     * Unless required by applicable law or agreed to in writing, software
+     * distributed under the License is distributed on an "AS IS" BASIS,
+     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     * See the License for the specific language governing permissions and
+     * limitations under the License.
      * 
-     * @param outputStream
+     * https://github.com/google/gson
      */
-    public void sendAll(OutputStream outputStream) {
-        // Primeiro passo: Percorre a lista de requisições enquanto houver requisição.
-        while (!listRequestsSend.isEmpty()) {
-        	send(outputStream, listRequestsSend.get(0));
-        	listRequestsSend.remove(0);
-        }
-        handlerDialog.publishInfo(handlerDialog.REQUESTS_SENT_ALL);
-    }
+	private String objectToJson(Object objectRequest) throws Exception {
+		Gson gson = new Gson();
+        String json = gson.toJson(objectRequest);
+		return json;
+	}
+
+	/**
+	 * Envia as requisições da lista de requisições para envio.
+	 */
+	@Override
+	public void run() {
+		while (status) {
+			if (!listRequestsToSend.isEmpty()) {
+	            Object firstRequest = listRequestsToSend.get(0);
+	            try {
+	            	sendRequest(firstRequest);
+	            	listRequestsToSend.remove(0);
+	                handlerDialog.publishInfo(handlerDialog.DATA_SENT);
+	            } catch (Exception e) {
+					handlerDialog.publishSevere(e.toString());
+					e.printStackTrace();
+	            }
+	        }
+		}
+		status = false;
+	}
 }

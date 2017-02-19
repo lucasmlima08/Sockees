@@ -1,72 +1,78 @@
+/*
+ * Copyright (C) Lucas Myllenno S M Lima. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.myllenno.sockees.servercontrol;
 
 import com.myllenno.sockees.management.User;
 import com.myllenno.sockees.report.HandlerDialog;
+import com.myllenno.sockees.requests.Authentication;
+import com.myllenno.sockees.usercontrol.ReceiveRequest;
+import com.myllenno.sockees.usercontrol.SendRequest;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
+import java.util.concurrent.Callable;
 import java.util.logging.Handler;
 
-public class AuthenticateUsers {
+public class AuthenticateUsers implements Callable<User> {
 
-    /**
-     * Classe de comunicação do evento ocorrido.
-     */
-    private HandlerDialog handlerDialog;
-    
-    /**
-     * Método construtor.
-     * 
-     * @param handler
-     */
-    public AuthenticateUsers(Handler handler){
-        handlerDialog = new HandlerDialog(handler);
-    }
-    
-    /**
-     * Realiza a autenticação do cliente no servidor.
-     * 
-     * @param user
-     * @param timeToAuthentication
-     * @return
-     */
-    public User authentication(User user, int timeToAuthentication){
-    	boolean available = false;
-		long startTime = System.currentTimeMillis();
+	private HandlerDialog handlerDialog;
+	private User user;
+
+	public AuthenticateUsers(Handler handler, User user) {
+		handlerDialog = new HandlerDialog(handler);
+		this.user = user;
+	}
+	
+	private void sendRequestToAuthenticate(Authentication authentication) throws Exception {	// Envia a requisição de autenticação para o servidor.
+		SendRequest sendRequest = new SendRequest(null, user.getConnectionUser());
+		sendRequest.sendRequest(authentication);
+	}
+	
+	private Authentication receiveRequestToAuthenticate() throws Exception {					// Recebe a resposta do servidor para a autenticação.
+		ReceiveRequest receiveRequest = new ReceiveRequest(
+				null, user.getConnectionUser(), Authentication.class);
+		Authentication authenticate = (Authentication) receiveRequest.receiveRequestObject();	
+		return authenticate;
+	}
+	
+	/**
+	 * Autentica o usuário e retorna o usuário autenticado.
+	 */
+	@Override
+	public User call() throws Exception {
+		User userAuthenticated = null;
+		Authentication authenticateResponse = null;
 		try {
-			PrintStream printStream = new PrintStream(user.getOutputStream());
-			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(user.getInputStream(), "UTF-8"));
-			// Faz a leitura do identificador do cliente.
-			while (!available) {
-				String read = bufferedReader.readLine();
-				// Verifica se o cliente não tem autorização.
-				if (read.equals("blocked")){
-					printStream.println("blocked");
-					available = true;
-					handlerDialog.publishInfo(handlerDialog.USER_NOT_AUTHENTICATED);
-					return null;
-				}
-				// Verifica se leu o id do cliente. (Se leu ele será autenticado).
-				if (!read.equals("")){
-					//int idClient = Integer.parseInt(read);
-					printStream.println("accepted");
-					available = true;
-					handlerDialog.publishInfo(handlerDialog.USER_AUTHENTICATED);
-					return user;
-				}
-				// verifica se esgotou o tempo de verificação da autenticação.
-				if ((System.currentTimeMillis() - startTime) >= timeToAuthentication){
-					printStream.println("timeout");
-					available = true;
-					handlerDialog.publishInfo(handlerDialog.TIMEOUT_FOR_AUTHENTICATION);
-					return null;
+			while (authenticateResponse == null) {
+				authenticateResponse = receiveRequestToAuthenticate();						// Recebe a requisição de autenticação.
+				if (authenticateResponse != null) {											// Verifica se recebeu a requisição.
+					if (authenticateResponse.getStatus().equals(handlerDialog.REQUIRED)) {	// Verifica se solicitou a requisição.
+						authenticateResponse.refreshStatus(handlerDialog.ACCEPTED); 			// Atualiza o status da requisição.
+						user.setId(authenticateResponse.getIdUser());							// Guarda o ID do usuário.
+						handlerDialog.publishInfo(handlerDialog.USER_AUTHENTICATED);			
+						userAuthenticated = user;												// Informa o usuário autenticado.
+					}
 				}
 			}
-		} catch (Exception e){
+			sendRequestToAuthenticate(authenticateResponse);								// Envia a resposta de autenticação.
+			return userAuthenticated;														// Retorna o usuário autenticado.
+		} catch (Exception e) {
+			handlerDialog.publishInfo(handlerDialog.USER_NOT_AUTHENTICATED);
 			handlerDialog.publishSevere(e.toString());
 			e.printStackTrace();
 		}
-		return null;
+		return userAuthenticated;
 	}
 }

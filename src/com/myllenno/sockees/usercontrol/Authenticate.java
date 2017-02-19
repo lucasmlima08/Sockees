@@ -1,59 +1,83 @@
+/*
+ * Copyright (C) Lucas Myllenno S M Lima. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.myllenno.sockees.usercontrol;
 
 import com.myllenno.sockees.report.HandlerDialog;
+import com.myllenno.sockees.requests.Authentication;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintStream;
+import java.util.concurrent.Callable;
 import java.util.logging.Handler;
 
-public class Authenticate {
+public class Authenticate implements Callable<Boolean> {
 
-    /**
-     * Classe de comunicação do evento ocorrido.
-     */
-    private HandlerDialog handlerDialog;
-        
-    /**
-     * Método construtor.
-     * 
-     * @param handler
-     */
-    public Authenticate(Handler handler){
-    	handlerDialog = new HandlerDialog(handler);
-    }
-    
-    /**
-     * Realiza a autenticação e recebe a resposta.
-     * 
-     * @param idUser
-     * @param inputStream
-     * @param outputStream
-     * @return
-     */
-    public boolean authenticate(int idUser, InputStream inputStream, OutputStream outputStream) {
-    	try {
-	        // Primeiro passo: Solicita uma autenticação ao servidor.
-	        PrintStream printStream = new PrintStream(outputStream);
-	        printStream.println(idUser);
-	        // Segundo passo: Aguarda a resposta do servidor.
-	        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-	        String read = bufferedReader.readLine();
-	        // Terceiro passo: Verifica se foi aceito pelo servidor.
-	        if (read.equals("accepted")){
-	        	handlerDialog.publishInfo(handlerDialog.USER_AUTHENTICATED);
-	            return true;
-	        } else if (read.equals("timeout")){
-	        	handlerDialog.publishInfo(handlerDialog.TIMEOUT_FOR_AUTHENTICATION);
-	        } else {
-	        	handlerDialog.publishInfo(handlerDialog.USER_NOT_AUTHENTICATED);
-	        }
-    	} catch (Exception e){
-    		handlerDialog.publishSevere(e.toString());
-    		e.printStackTrace();
-    	}
-    	return false;
-    }
+	private boolean status;
+	private HandlerDialog handlerDialog;
+	private ConnectionUser connectionUser;
+
+	public Authenticate(Handler handler, ConnectionUser connectionUser) {
+		handlerDialog = new HandlerDialog(handler);
+		this.connectionUser = connectionUser;
+	}
+	
+	public void setStatus(boolean status) {
+		this.status = status;
+	}
+	
+	public boolean getStatus() {
+		return status;
+	}
+	
+	private void sendRequestToAuthenticate(Authentication authentication) throws Exception {				// Envia a requisição de autenticação para o servidor.
+		SendRequest sendRequest = new SendRequest(null, connectionUser);
+		sendRequest.sendRequest(authentication);
+	}
+	
+	private Authentication receiveRequestToAuthenticate() throws Exception {								// Recebe a resposta do servidor para a autenticação.
+		ReceiveRequest receiveRequest = new ReceiveRequest(null, connectionUser, Authentication.class);
+		Authentication authenticate = (Authentication) receiveRequest.receiveRequestObject();	
+		return authenticate;
+	}
+	
+	/**
+	 * Realiza a autenticação do usuário e retorna o status da autenticação.
+	 * 
+	 * @param Boolean
+	 * @exception
+	 */
+	@Override
+	public Boolean call() throws Exception {
+		try {
+			Authentication authentication = new Authentication(						// Cria a classe de autenticação.
+					connectionUser.getId(), handlerDialog.REQUIRED);				
+			sendRequestToAuthenticate(authentication);								// Envia a requisição de autenticação.
+			Authentication authenticateResponse = null;
+			while (authenticateResponse == null) {
+				authenticateResponse = receiveRequestToAuthenticate();				// Recebe a requisição de autenticação.
+				if (authenticateResponse != null) {
+					handlerDialog.publishInfo(handlerDialog.USER_AUTHENTICATED);
+					handlerDialog.publishInfo(authenticateResponse.getStatus());
+					return true;
+				}
+			}
+		} catch (Exception e) {
+			handlerDialog.publishInfo(handlerDialog.USER_NOT_AUTHENTICATED);
+			handlerDialog.publishSevere(e.toString());
+			e.printStackTrace();
+		}
+		return false;
+	}
 }
